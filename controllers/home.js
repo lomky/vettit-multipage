@@ -14,3 +14,8 @@ exports.index = function(req, res) {
     })
   }
 };
+exports.privacy = function(req, res) {
+  res.render('privacy', {
+    layout: 'org-landing'
+  })
+};
