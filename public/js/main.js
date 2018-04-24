@@ -21,13 +21,15 @@ $(function() {
       formData: formData
     };
 
-    var formBuilder = $('.build-wrap').formBuilder(options).data('formBuilder');
+    var formBuilder = $('.build-wrap').formBuilder(options);
+
     $('.btn-org-save').click(function(e) {
       e.preventDefault();
       $('#org-survey').val(JSON.stringify(formBuilder.formData));
       $('.build-wrap').remove();
       $('form').submit();
     });
+
   } else if($('#fbTemplate').val()) {
     var fbTemplate = document.getElementById('fbTemplate').value;
     var parsed = JSON.parse(fbTemplate);

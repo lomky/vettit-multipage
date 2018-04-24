@@ -29,6 +29,7 @@ var contactController = require('./controllers/contact');
 require('./config/passport');
 var app = express();
 
+var config = require('./config/settings');
 
 mongoose.connect(process.env.MONGOHQ_URL);
 mongoose.connection.on('error', function() {
@@ -56,10 +57,12 @@ app.set('view engine', 'handlebars');
 app.set('port', process.env.PORT || 3000);
 app.use(compression());
 app.use(logger('dev'));
+
 app.use(wildcardSubdomains({
   namespace: 's',
   whitelist: ['www', 'app', 'api']
 }));
+
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -77,7 +80,10 @@ app.use(session({
 	secret: process.env.SESSION_SECRET,
 	resave: true,
 	saveUninitialized: true,
-	store: new MongoStore({mongooseConnection: mongoose.connection})
+	store: new MongoStore({mongooseConnection: mongoose.connection}),
+	cookie: {
+		domain: '.' + config.domain
+	}
 }));
 app.use(flash());
 app.use(passport.initialize());
@@ -107,11 +113,19 @@ app.get('/logout', userController.logout);
 app.get('/s/:subdomain/logout', userController.logout);
 app.get('/unlink/:provider', userController.ensureAuthenticated, userController.unlink);
 
+
 app.get('/s/:subdomain', orgController.showOrg);
 app.get('/s/:subdomain/apply', appController.newApp);
 app.post('/s/:subdomain/apply', appController.createApp);
 app.get('/s/:subdomain/status', appController.appStatus);
-app.get('/s/:subdomain/auth/facebook', orgController.authRedirect);
+app.get('/s/:subdomain/auth/:provider(facebook|google|linkedin)', orgController.authRedirect);
+
+app.get('/s/:subdomain/signup', userController.signupGet);
+app.post('/s/:subdomain/signup', userController.signupPost);
+
+app.get('/s/:subdomain/login', userController.loginGet);
+app.post('/s/:subdomain/login', userController.loginPost);
+
 
 app.get('/orgs/:id/applications', appController.listApps);
 app.get('/orgs/:id/applications/filter/:filter', appController.listApps);
@@ -123,9 +137,40 @@ app.get('/orgs/:id/edit', orgController.editOrg);
 app.post('/orgs/:id/edit', orgController.updateOrg);
 app.post('/orgs/new', orgController.createOrg);
 
+
+
 app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email', 'user_location'] }));
-app.get('/auth/facebook/callback', passport.authenticate('facebook', { successRedirect: '/auth/rewrite', failureRedirect: '/auth/rewrite' }));
+app.get('/auth/linkedin', passport.authenticate('linkedin'));
+app.get('/auth/google', passport.authenticate('google',
+                                  {scope: [
+                                     'https://www.googleapis.com/auth/userinfo.email',
+                                     'https://www.googleapis.com/auth/plus.login'
+                                  ]}));
+
+
+app.get('/auth/facebook/callback',
+  passport.authenticate('facebook', {
+    successRedirect: '/auth/rewrite',
+    failureRedirect: '/auth/rewrite'
+}));
+
+
+app.get('/auth/google/callback',
+  passport.authenticate('google', {
+    failureRedirect: '/auth/rewrite',
+    successRedirect: '/auth/rewrite'
+}));
+
+
+app.get('/auth/linkedin/callback',
+  passport.authenticate('linkedin', {
+    failureRedirect: '/auth/rewrite',
+    successRedirect: '/auth/rewrite'
+}));
+
+
 app.get('/auth/rewrite', orgController.rewriteSubdomain);
+app.get(/^\/s\/.*\/(css|fonts|img|js|vendors)+\/.+$/, orgController.stripSubdomain);
 
 
 //app.get('/s/:subdomain/auth/twitter', passport.authenticate('twitter'));

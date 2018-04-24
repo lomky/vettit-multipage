@@ -2,13 +2,18 @@ var User = require('../models/User');
 var Org = require('../models/Org');
 var Application = require('../models/Application');
 
+var config = require('../config/settings');
+
+
 /**
  * GET subdomain.volunteercheck.co/
  */
 exports.showOrg = function(req, res) {
   console.log("SHOW ORG");
-  console.log(req.cookies);
-  res.clearCookie("session");
+  console.log(req.params.subdomain);
+  //res.clearCookie("session");
+  console.info(req.user);
+
   Org.findOne({subdomain: req.params.subdomain}, function(err, theOrg) {
     if(theOrg && !req.isAuthenticated()) {
       res.render('landingpage', {
@@ -29,6 +34,7 @@ exports.showOrg = function(req, res) {
     }
   })
 };
+
 
 /**
  * GET /orgs/new
@@ -93,6 +99,7 @@ exports.createOrg = function(req, res) {
 exports.editOrg = function(req, res) {
   if (req.isAuthenticated()) {
     User.findById(req.user.id, function(err, theUser) {
+      console.log(theUser.org, req.params.id);
       if(theUser.org == req.params.id) {
         Org.findById(req.params.id, function(err, org) {
           if(!err) {
@@ -160,21 +167,30 @@ exports.updateOrg = function(req, res) {
 };
 
 exports.authRedirect = function(req, res) {
-  console.log("AUTH REDIRECT");
+  console.log("")
+  console.log("AUTH REDIRECT: (" + req.params.subdomain + ")" + config.domain + "<-" + req.params.provider);
   res.clearCookie("session");
-  res.cookie('auth_subdomain', req.params.subdomain, { httpOnly: true, domain: 'volunteercheck.org' });
-  res.redirect('https://www.volunteercheck.org/auth/facebook');
+  res.cookie('auth_subdomain', req.params.subdomain, { domain: "." + config.domain });
+  res.redirect(config.protocol + config.domain +'/auth/' + req.params.provider);
 };
+
 
 exports.rewriteSubdomain = function(req, res) {
   console.log(req.cookies);
+  console.log(req.isAuthenticated());
   var cookieSubdomain = req.cookies['auth_subdomain'];
   if(cookieSubdomain && cookieSubdomain.length) {
       console.log("Found subdomain: " + cookieSubdomain);
       res.clearCookie("auth_subdomain");
-      res.redirect("https://" + cookieSubdomain + ".volunteercheck.org/");
+      res.redirect(config.protocol + cookieSubdomain + "." + config.domain);
   } else {
     console.log("Didn't find a subdomain cookie - Maybe it expired?");
     res.redirect("/");
   }
 };
+
+exports.stripSubdomain = function(req, res){
+  parts = req.path.split('/');
+  less = parts.slice(3, parts.length).join('/');
+  res.redirect(config.protocol + config.domain + '/' + less);
+}
