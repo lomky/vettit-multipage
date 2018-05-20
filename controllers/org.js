@@ -72,16 +72,15 @@ exports.createOrg = function(req, res) {
       website: req.body.orgWebsite,
       facebook: req.body.orgFacebook,
       twitter: req.body.orgTwitter,
-      survey: req.body.orgSurvey,
+//      survey: req.body.orgSurvey, //TODO this should be added later
       subdomain: req.body.orgSubdomain
     });
-
     newOrg.save(function(err) {
       if(!err) {
         User.findById(req.user.id, function(err, theUser) {
           theUser.org = newOrg._id;
           theUser.save(function(err) {
-            res.redirect("/");
+            res.redirect("/"); //TODO point to the survey page instead
           });
         });
       } else {
@@ -123,26 +122,58 @@ exports.editOrg = function(req, res) {
 };
 
 /**
+ * GET /orgs/:id/survey
+ */
+exports.editSurvey = function(req, res) {
+  if (req.isAuthenticated()) {
+    User.findById(req.user.id, function(err, theUser) {
+      console.log(theUser.org, req.params.id);
+      if(theUser.org == req.params.id) {
+        Org.findById(req.params.id, function(err, org) {
+          if(!err) {
+            console.log(org);
+            res.render('org/edit-survey', {
+              title: 'Organization Survey', //TODO - create the page
+              org: org
+            });
+          } else {
+            console.log(err);
+            res.send(500);
+          }
+        });
+      } else {
+        res.redirect("/");
+      }
+    });
+  } else {
+    res.redirect('/login');
+  }
+};
+
+/**
  * POST /orgs/:id
  */
 exports.updateOrg = function(req, res) {
   if (req.isAuthenticated()) {
     User.findById(req.user.id, function(err, theUser) {
+      //TODO this is all thats stopping orgs from futzing with each other. Brittle!
+      //Connect Org and Model users? One to many
       if(theUser.org == req.params.id) {
         Org.findById(req.params.id, function(err, org) {
           if(!err) {
 
-            org.name = req.body.orgName;
-            org.location = req.body.orgLocation;
-            org.tagline = req.body.orgTagline;
-            org.about = req.body.orgAbout;
-            org.heroImg = req.body.orgHero;
-            org.iconImg = req.body.orgIcon;
-            org.website = req.body.orgWebsite;
-            org.facebook = req.body.orgFacebook;
-            org.twitter = req.body.orgTwitter;
-            org.survey = req.body.orgSurvey;
-            org.subdomain = req.body.orgSubdomain;
+            //TODO this means you can't delete a value...
+            org.name        = req.body.orgName      || org.name;
+            org.location    = req.body.orgLocation  || org.location;
+            org.tagline     = req.body.orgTagline   || org.tagline;
+            org.about       = req.body.orgAbout     || org.about;
+            org.heroImg     = req.body.orgHero      || org.heroImg;
+            org.iconImg     = req.body.orgIcon      || org.iconImg;
+            org.website     = req.body.orgWebsite   || org.website;
+            org.facebook    = req.body.orgFacebook  || org.facebook;
+            org.twitter     = req.body.orgTwitter   || org.twitter;
+            org.survey      = req.body.orgSurvey    || org.survey;
+            org.subdomain   = req.body.orgSubdomain || org.subdomain;
 
             org.save(function(err) {
               if(!err) {
