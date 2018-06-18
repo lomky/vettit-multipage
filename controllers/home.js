@@ -3,8 +3,10 @@
  */
 exports.index = function(req, res) {
   if(req.isAuthenticated()) {
-    if(req.user.org) {
+    if(req.user.org && req.user.org.survey) {
       res.redirect('/orgs/'+req.user.org+"/applications");
+    } else if(req.user.org) {
+      res.redirect('/orgs/'+req.user.org+"/survey");
     } else {
       res.redirect('/orgs/new');
     }
