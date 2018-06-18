@@ -137,7 +137,7 @@ app.get('/orgs/:id/edit', orgController.editOrg);
 app.post('/orgs/:id/edit', orgController.updateOrg);
 app.post('/orgs/new', orgController.createOrg);
 app.get('/orgs/:id/survey', orgController.editSurvey);
-app.post('/orgs/:id/survey', orgController.updateOrg);
+app.post('/orgs/:id/survey', orgController.updateSurvey);
 
 
 app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email', 'user_location'] }));

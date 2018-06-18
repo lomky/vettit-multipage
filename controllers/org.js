@@ -58,6 +58,7 @@ exports.newOrg = function(req, res) {
 /**
  * POST /orgs/new
  */
+ //TODO This should move to the survey page after creation. Perplexed a bit.
 exports.createOrg = function(req, res) {
   if (req.isAuthenticated()) {
     console.log(req);
@@ -72,7 +73,6 @@ exports.createOrg = function(req, res) {
       website: req.body.orgWebsite,
       facebook: req.body.orgFacebook,
       twitter: req.body.orgTwitter,
-//      survey: req.body.orgSurvey, //TODO this should be added later
       subdomain: req.body.orgSubdomain
     });
     newOrg.save(function(err) {
@@ -80,7 +80,8 @@ exports.createOrg = function(req, res) {
         User.findById(req.user.id, function(err, theUser) {
           theUser.org = newOrg._id;
           theUser.save(function(err) {
-            res.redirect("/"); //TODO point to the survey page instead
+           // res.redirect('/org/' + newOrg._id + '/survey');
+           res.redirect('/');
           });
         });
       } else {
@@ -121,6 +122,53 @@ exports.editOrg = function(req, res) {
   }
 };
 
+
+/**
+ * POST /orgs/:id
+ */
+exports.updateOrg = function(req, res) {
+  if (req.isAuthenticated()) {
+    User.findById(req.user.id, function(err, theUser) {
+      //TODO this is all thats stopping orgs from futzing with each other. Brittle!
+      //Connect Org and Model users? One to many
+      if(theUser.org == req.params.id) {
+        Org.findById(req.params.id, function(err, org) {
+          if(!err) {
+            org.name        = req.body.orgName;
+            org.location    = req.body.orgLocation;
+            org.tagline     = req.body.orgTagline;
+            org.about       = req.body.orgAbout;
+            org.heroImg     = req.body.orgHero;
+            org.iconImg     = req.body.orgIcon;
+            org.website     = req.body.orgWebsite;
+            org.facebook    = req.body.orgFacebook;
+            org.twitter     = req.body.orgTwitter;
+            org.subdomain   = req.body.orgSubdomain;
+
+            org.save(function(err) {
+              if(!err) {
+                res.redirect("/");
+              } else {
+                //TODO handle user error more gracefully?
+                // We can get here if the user tries to submit a blank name or subdomain
+                console.log(err);
+                res.send(500);
+              }
+            });
+          } else {
+            console.log(err);
+            res.send(500);
+          }
+        });
+      } else {
+        res.redirect("/");
+      }
+    });
+  } else {
+    res.redirect('/login');
+  }
+};
+
 /**
  * GET /orgs/:id/survey
  */
@@ -133,7 +181,7 @@ exports.editSurvey = function(req, res) {
           if(!err) {
             console.log(org);
             res.render('org/edit-survey', {
-              title: 'Organization Survey', //TODO - create the page
+              title: 'Organization Survey',
               org: org
             });
           } else {
@@ -151,9 +199,9 @@ exports.editSurvey = function(req, res) {
 };
 
 /**
- * POST /orgs/:id
+ * POST /orgs/:id/survey
  */
-exports.updateOrg = function(req, res) {
+exports.updateSurvey = function(req, res) {
   if (req.isAuthenticated()) {
     User.findById(req.user.id, function(err, theUser) {
       //TODO this is all thats stopping orgs from futzing with each other. Brittle!
@@ -161,19 +209,7 @@ exports.updateOrg = function(req, res) {
       if(theUser.org == req.params.id) {
         Org.findById(req.params.id, function(err, org) {
           if(!err) {
-
-            //TODO this means you can't delete a value...
-            org.name        = req.body.orgName      || org.name;
-            org.location    = req.body.orgLocation  || org.location;
-            org.tagline     = req.body.orgTagline   || org.tagline;
-            org.about       = req.body.orgAbout     || org.about;
-            org.heroImg     = req.body.orgHero      || org.heroImg;
-            org.iconImg     = req.body.orgIcon      || org.iconImg;
-            org.website     = req.body.orgWebsite   || org.website;
-            org.facebook    = req.body.orgFacebook  || org.facebook;
-            org.twitter     = req.body.orgTwitter   || org.twitter;
-            org.survey      = req.body.orgSurvey    || org.survey;
-            org.subdomain   = req.body.orgSubdomain || org.subdomain;
+            org.survey      = req.body.orgSurvey;
 
             org.save(function(err) {
               if(!err) {

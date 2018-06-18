@@ -49,6 +49,7 @@
                       {{#if user.org}}
                         {{#if user.admin}}
                           <li {{#is title "Organization Settings"}} class="active"{{/is}}><a href='/orgs/{{user.org}}/edit'>Organization Settings</a></li>
+                          <li {{#is title "Organization Survey"}} class="active"{{/is}}><a href='/orgs/{{user.org}}/survey'>Organization Survey</a></li>
                         {{/if}}
                       {{else}}
                         {{#if user.admin}}
