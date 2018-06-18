@@ -5,7 +5,8 @@
   "scripts": {
     "deploy": "npm test && git push heroku master",
     "start": "node server.js",
-    "start-dev": "source secrets.sh && nodemon server.js"
+    "start-dev": "source secrets.sh && nodemon server.js",
+    "test": "mocha"
   },
   "dependencies": {
     "async": "^1.5.2",
@@ -35,7 +36,9 @@
     "passport-twitter": "^1.0.4",
     "wildcard-subdomains": "^1.1.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  },
   "engines": {
     "node": "6.1.0"
   }
