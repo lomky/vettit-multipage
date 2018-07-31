@@ -11,7 +11,7 @@ if(process.env.APP_STAGE){
       break;
 
     case 'dev':
-      exports.domain = "a.vettit";
+      exports.domain = "a.vettit:3000";
       exports.protocol = "http://";
       break;
 
