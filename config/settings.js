@@ -1,7 +1,7 @@
 if(process.env.APP_STAGE){
   switch(process.env.APP_STAGE){
     case 'prod':
-      exports.domain = "www.volunteercheck.org";
+      exports.domain = "volunteercheck.org";
       exports.protocol = "https://";
       break;
 
