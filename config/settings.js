@@ -6,8 +6,8 @@ if(process.env.APP_STAGE){
       break;
 
     case 'stage':
-      exports.domain = "vettit-dev.com";
-      exports.protocol = "http://";
+      exports.domain = "vettit.org";
+      exports.protocol = "https://";
       break;
 
     case 'dev':
